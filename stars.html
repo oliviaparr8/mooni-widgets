@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Today's stars</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="widgets.css">
+<style>
+  .widget { background: var(--card); padding: 20px; gap: 14px; box-shadow: 0 6px 20px rgba(90,37,72,.08); }
+  h1 { margin: 0; font-family: var(--serif); font-size: 18px; font-weight: 600; color: var(--plum); }
+  .tabs { display: flex; gap: 6px; }
+  .tab { flex: 1 1 0; min-height: 44px; border: 0; border-radius: 999px; background: #EFE6EC; color: var(--plum); font: 600 12px var(--sans); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px; padding: 0 6px; }
+  .tab[aria-pressed="true"] { background: var(--plum); color: #fff; }
+  .tab:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
+  .sign { font-family: var(--serif); font-style: italic; font-size: 16px; color: var(--green); margin: 0 0 8px; }
+  .text { font-size: 14px; line-height: 1.45; color: #43332E; margin: 0; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { border-radius: 999px; padding: 4px 10px; font-size: 12px; font-weight: 500; }
+  .mood { background: var(--plum-soft); color: var(--plum); }
+  .color { background: var(--sage); color: var(--ink); }
+  .num { background: var(--blue); color: var(--blue-ink); }
+  .updated { font-size: 11px; color: var(--muted); margin: 0; }
+</style>
+</head>
+<body>
+<div class="widget">
+  <h1>today's stars</h1>
+  <div class="tabs" role="group" aria-label="Choose a sign">
+    <button class="tab" data-key="sun" aria-pressed="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg><span>Aries sun</span></button>
+    <button class="tab" data-key="moon" aria-pressed="false"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg><span>Aquarius</span></button>
+    <button class="tab" data-key="rising" aria-pressed="false"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"/></svg><span>Taurus</span></button>
+  </div>
+  <div aria-live="polite">
+    <p class="sign" id="sign">Aries · sun</p>
+    <p class="text" id="text">loading today's reading…</p>
+  </div>
+  <div class="chips" id="chips"></div>
+  <p class="updated" id="updated"></p>
+</div>
+<script>
+  (function () {
+    var LABELS = {
+      sun: 'Aries · sun',
+      moon: 'Aquarius · moon',
+      rising: 'Taurus · rising'
+    };
+    var data = null;
+    var current = 'sun';
+
+    var signEl = document.getElementById('sign');
+    var textEl = document.getElementById('text');
+    var chipsEl = document.getElementById('chips');
+    var updatedEl = document.getElementById('updated');
+    var tabs = document.querySelectorAll('.tab');
+
+    function chip(cls, text) {
+      var el = document.createElement('div');
+      el.className = 'chip ' + cls;
+      el.textContent = text; // textContent only: never inject API text as HTML
+      return el;
+    }
+
+    function render() {
+      signEl.textContent = LABELS[current];
+      chipsEl.textContent = '';
+      var entry = data && data[current];
+      if (!entry || !entry.horoscope) {
+        textEl.textContent = "today's reading isn't available yet. check back soon.";
+        return;
+      }
+      textEl.textContent = entry.horoscope;
+      if (entry.mood) chipsEl.appendChild(chip('mood', 'mood: ' + entry.mood));
+      if (entry.color) chipsEl.appendChild(chip('color', 'color: ' + entry.color));
+      if (entry.luckyNumber !== undefined && entry.luckyNumber !== null && entry.luckyNumber !== '') {
+        chipsEl.appendChild(chip('num', 'lucky no. ' + entry.luckyNumber));
+      }
+    }
+
+    tabs.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        current = btn.getAttribute('data-key');
+        tabs.forEach(function (b) { b.setAttribute('aria-pressed', b === btn ? 'true' : 'false'); });
+        render();
+      });
+    });
+
+    fetch('data/horoscope.json?t=' + Date.now())
+      .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(function (json) {
+        data = json;
+        if (json.updated) updatedEl.textContent = 'updated ' + json.updated;
+        render();
+      })
+      .catch(function () { render(); });
+  })();
+</script>
+</body>
+</html>

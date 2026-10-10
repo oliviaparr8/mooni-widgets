@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clock</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="widgets.css">
+<style>
+  .widget { background: var(--blue); color: var(--blue-ink); justify-content: center; padding: 22px; gap: 4px; min-height: 120px; }
+  .time { font-family: var(--serif); font-size: 40px; font-weight: 600; line-height: 1.05; }
+  .day { font-size: 14px; color: #2E4F60; }
+</style>
+</head>
+<body>
+<div class="widget">
+  <div class="time" id="time" aria-live="off">--:--</div>
+  <div class="day" id="day"></div>
+</div>
+<script>
+  (function () {
+    var timeEl = document.getElementById('time');
+    var dayEl = document.getElementById('day');
+    function tick() {
+      var d = new Date();
+      timeEl.textContent = d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+      dayEl.textContent = d.toLocaleDateString([], { weekday: 'long', month: 'short', day: 'numeric' });
+    }
+    tick();
+    setInterval(tick, 10000);
+  })();
+</script>
+</body>
+</html>
